@@ -93,6 +93,11 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
+    /*--------------------------------------------------------------------------------------------*/
+    int64_t TIEMPO_DORMIDO;  //cantidad de ticks que permanecera dormido/inhabilitado un thread
+    /*--------------------------------------------------------------------------------------------*/
+
+
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
@@ -137,5 +142,15 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
+
+
+/*---------------------------------------------------------------------------------------*/
+void func_dormir_threads(int64_t ticks);
+
+
+
+
+/*---------------------------------------------------------------------------------------*/
+
 
 #endif /* threads/thread.h */
