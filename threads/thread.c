@@ -613,12 +613,36 @@ void func_dormir_threads(int64_t ticks){
   /*Donde TIEMPO_DORMIDO es el atributo de la estructura thread que usted
 	  definió como paso inicial*/
 
-  list_push_back(&lista_espera, &thread_actual->elem);
+  list_push_back(&lista_de_threads_en_espera, &thread_actual->elem);
   thread_block();
 
   //Habilitar interrupciones
 	intr_set_level (old_level);
 
+}
+
+void func_despertar_threads(int64_t ticks){
+
+/*Cuando ocurra un timer_interrupt, si el tiempo del thread ha expirado
+Se mueve de regreso a ready_list, con la funcion thread_unblock*/
+
+	//Iterar sobre "lista_espera"
+	struct list_elem *iter = list_begin(&lista_de_threads_en_espera);
+	while(iter != list_end(&lista_de_threads_en_espera) ){
+		struct thread *thread_lista_espera= list_entry(iter, struct thread, elem);
+
+		/*Si el tiempo global es mayor al tiempo que el thread permanecía dormido
+		  entonces su tiempo de dormir ha expirado*/
+
+		if(ticks >= thread_lista_espera->TIEMPO_DORMIDO){
+			//Lo removemos de "lista_espera" y lo regresamos a ready_list
+			iter = list_remove(iter);
+			thread_unblock(thread_lista_espera);
+		}else{
+			//Sino, seguir iterando
+			iter = list_next(iter);
+		}
+	}
 }
 
 
