@@ -24,6 +24,8 @@
 
 static struct list lista_de_threads_en_espera;
 
+static int tiempo_de_carga;
+
 /*------------------------------------------------------------*/
 
 /* List of processes in THREAD_READY state, that is, processes
@@ -90,6 +92,83 @@ static tid_t allocate_tid (void);
 
    It is not safe to call thread_current() until this function
    finishes. */
+
+
+
+/*-----------------------------------------------------*/
+//vamos a comparar prioridades entre dos threads
+
+bool comparacion_diferente_prioridad_threads(const struct list_elem *thread_A, const struct list_elem *thread_B, void *variable_auxiliar UNUSED){
+
+  if(list_entry(thread_A,struct thread,elem)->priority > list_entry(thread_B,struct thread,elem)->priority){
+      return true;
+  }
+  else{
+    return false;
+  }
+}
+
+
+
+//vamos a comparar prioridades entre dos threads
+bool comparacion_igual_prioridad_threads(const struct list_elem *thread_A, const struct list_elem *thread_B, void *variable_auxiliar UNUSED){
+
+  if(list_entry(thread_A,struct thread,elem)->priority == list_entry(thread_B,struct thread,elem)->priority){
+      return true;
+  }
+  else{
+    return false;
+  }
+}
+
+
+//funcion que realiza el calculo de prioridades al valor entero mas cercano evaluando de que si la prioridad es menor o mayor, se setea a los valores default
+void calculo_donaciones_de_prioridades(struct thread *thread_actual, void *variables_auxiliar UNUSED ){
+  ASSERT(is_thread(thread_actual));
+  if(thread_actual != idle_thread){
+    thread_actual->priority = PRI_MAX - CONVERT_TO_INT_NEAREST(DIV_FP_INT(thread_actual->recent_cpu,4)) - (thread_actual->nice*2);
+    if(thread_actual->priority < PRI_MIN){
+      thread_actual->priority = PRI_MIN;
+    }
+    if(thread_actual->priority > PRI_MAX){
+      thread_actual->priority = PRI_MAX;
+    }
+  }
+}
+
+
+
+void calculo_tiempo_espera_cpu(struct thread *thread_actual, void *variables_auxiliar UNUSED){
+   ASSERT(is_thread(thread_actual));
+    if(thread_actual != idle_thread){
+      thread_actual->recent_cpu = SUMFI(MULT(DIV(MULTFI(load_avg,2),SUMFI(MULTFI(load_avg,2),1)),thread_actual-> recent_cpu),thread->nice);
+  }
+}
+
+
+
+
+void calculo_tiempo_carga_thread(){
+  ASSERT(is_thread(thread_actual));
+  int num_threads_a_ejecutarse = list_size(&ready_list);
+
+  if(thread_actual == idle_thread){
+    num_threads_a_ejecutarse = list_size(&ready_list);
+  }
+
+  if(thread_actual != idle_thread){
+    num_threads_a_ejecutarse = list_size(&ready_list) + 1;
+  }
+
+  MULT(DIVFI(CONVERT_N_TO_FIXED_POINT(59), 60), tiempo_de_carga) + MULTFI(DIVFI(CONVERT_N_TO_FIXED_POINT(1), 60), num_threads_a_ejecutarse);
+}
+
+
+
+
+
+/*-----------------------------------------------------*/
+
 void
 thread_init (void)
 {
