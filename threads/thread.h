@@ -97,6 +97,7 @@ struct thread
     int64_t TIEMPO_DORMIDO;  //cantidad de ticks que permanecera dormido/inhabilitado un thread
     int64_t PRIORIDAD_INICIAL;
     int64_t PRIORIDAD_DONADA;
+    bool A_RECIBIDO_PRIORIDAD;
     /*--------------------------------------------------------------------------------------------*/
 
 
