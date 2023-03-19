@@ -149,7 +149,7 @@ int thread_get_load_avg (void);
 /*---------------------------------------------------------------------------------------*/
 void func_dormir_threads(int64_t ticks);
 void func_despertar_threads(int64_t ticks);
-
+bool comparador_pri(const struct list_elem *thread_A, const struct list_elem *thread_B, void *variable_auxiliar UNUSED);
 
 
 /*---------------------------------------------------------------------------------------*/
