@@ -32,6 +32,7 @@
 #include "threads/interrupt.h"
 #include "threads/thread.h"
 #include "threads/thread.c"
+#include "lib/kernel/list.h"
 /* Initializes semaphore SEMA to VALUE.  A semaphore is a
    nonnegative integer along with two atomic operators for
    manipulating it:
@@ -310,7 +311,9 @@ cond_wait (struct condition *cond, struct lock *lock)
    interrupt handler. */
 
 //ordenar estructura de lista con locks esperando para agarrar un lock, siendo habilitados por el semaforo
-bool semaforo_pri(const struct list_elem *thread_A, const struct list_elem *thread_B)
+bool semaforo_pri(const struct list_elem *thread_A, const struct list_elem *thread_B, void *auxiliar UNUSED){
+return list_entry(list_front(&(list_entry(thread_A, struct semaphore_elem, elem)->semaphore.waiters)), struct thread, elem)->priority > list_entry(list_front(&(list_entry(thread_B, struct semaphore_elem, elem)->semaphore.waiters)), struct thread, elem)->priority;
+}
 
 void
 cond_signal (struct condition *cond, struct lock *lock UNUSED)
@@ -321,8 +324,8 @@ cond_signal (struct condition *cond, struct lock *lock UNUSED)
   ASSERT (lock_held_by_current_thread (lock));
 
   if (!list_empty (&cond->waiters))
-    sema_up (&list_entry (list_pop_front(list_sort (&cond->waiters,semaforo_pri,NULL)),
-                          struct semaphore_elem, elem)->semaphore);
+    list_sort(&cond->waiters, semaforo_pri, NULL);
+    sema_up (&list_entry (list_pop_front (&cond->waiters), struct semaphore_elem, elem)->semaphore);
 }
 
 /* Wakes up all threads, if any, waiting on COND (protected by
