@@ -97,7 +97,7 @@ struct thread
     int64_t TIEMPO_DORMIDO;  //cantidad de ticks que permanecera dormido/inhabilitado un thread
     int64_t PRIORIDAD_INICIAL;
     int64_t PRIORIDAD_DONADA;
-    bool A_RECIBIDO_PRIORIDAD;
+    bool HA_RECIBIDO_PRIORIDAD;
     struct lock *lock_requerido;
     struct lock *lock_cedido;
     struct list thread_baja_pri; //threads con recursos agarrados que necesita otro thread, y precisan donacion
@@ -156,7 +156,7 @@ int thread_get_load_avg (void);
 void func_dormir_threads(int64_t ticks);
 void func_despertar_threads(int64_t ticks);
 bool comparador_pri(const struct list_elem *thread_A, const struct list_elem *thread_B, void *variable_auxiliar UNUSED);
-
+bool comparador_igual_pri(const struct list_elem *thread_A, const struct list_elem *thread_B, void *variable_auxiliar UNUSED);
 
 /*---------------------------------------------------------------------------------------*/
 
