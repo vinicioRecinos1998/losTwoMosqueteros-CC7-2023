@@ -98,8 +98,13 @@ struct thread
     int64_t PRIORIDAD_INICIAL;
     int64_t PRIORIDAD_DONADA;
     bool A_RECIBIDO_PRIORIDAD;
+    struct lock *lock_requerido;
+    struct lock *lock_cedido;
+    struct list thread_baja_pri; //threads con recursos agarrados que necesita otro thread, y precisan donacion
+    struct list thread_alta_pri;//threads que dan prioridad para que se termine de ejecutar quien tiene su recurso
+    struct list donaciones;
+    struct list lock_disponibles;
     /*--------------------------------------------------------------------------------------------*/
-
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */

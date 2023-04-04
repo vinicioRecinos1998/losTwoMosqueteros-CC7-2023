@@ -308,6 +308,10 @@ cond_wait (struct condition *cond, struct lock *lock)
    An interrupt handler cannot acquire a lock, so it does not
    make sense to try to signal a condition variable within an
    interrupt handler. */
+
+//ordenar estructura de lista con locks esperando para agarrar un lock, siendo habilitados por el semaforo
+bool semaforo_pri(const struct list_elem *thread_A, const struct list_elem *thread_B)
+
 void
 cond_signal (struct condition *cond, struct lock *lock UNUSED)
 {
@@ -317,7 +321,7 @@ cond_signal (struct condition *cond, struct lock *lock UNUSED)
   ASSERT (lock_held_by_current_thread (lock));
 
   if (!list_empty (&cond->waiters))
-    sema_up (&list_entry (list_pop_front (&cond->waiters),
+    sema_up (&list_entry (list_pop_front(list_sort (&cond->waiters,semaforo_pri,NULL)),
                           struct semaphore_elem, elem)->semaphore);
 }
 
