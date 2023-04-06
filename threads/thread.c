@@ -386,15 +386,7 @@ void thread_foreach(thread_action_func *func, void *aux)
 
 bool comparador_pri(const struct list_elem *thread_A, const struct list_elem *thread_B, void *variable_auxiliar UNUSED)
 {
-
-  if (list_entry(thread_A, struct thread, elem)->priority > list_entry(thread_B, struct thread, elem)->priority)
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+   return list_entry(thread_A, struct thread, elem)->priority >= list_entry(thread_B, struct thread, elem)->priority;
 }
 
 // vamos a comparar prioridades entre dos threads

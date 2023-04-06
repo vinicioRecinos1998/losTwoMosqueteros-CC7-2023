@@ -46,7 +46,8 @@ void cond_signal (struct condition *, struct lock *);
 void cond_broadcast (struct condition *, struct lock *);
 /*----------------------------------------------------------*/
 bool hubo_donacion(struct list *lista_donaciones, struct lock *lock);
-struct list_elem *mover_lock(struct list *lista_donaciones, struct lock *lock);
+bool mover_lock(struct list *lista_donaciones, struct lock *lock);
+struct list_elem *buscador_de_lock(struct list *lista_donaciones, struct lock *lock);
 
 
 /* Optimization barrier.

@@ -33,6 +33,7 @@
 #include "threads/thread.h"
 #include "threads/thread.c"
 #include "lib/kernel/list.h"
+#define DEPTH_LIMIT 8
 /* Initializes semaphore SEMA to VALUE.  A semaphore is a
    nonnegative integer along with two atomic operators for
    manipulating it:
@@ -190,6 +191,46 @@ lock_init (struct lock *lock)
    interrupt handler.  This function may be called with
    interrupts disabled, but interrupts will be turned back on if
    we need to sleep. */
+
+/*------------------------------------------------------------------------*/
+struct list_elem *buscador_de_lock(struct list *lista_donaciones, struct lock *lock){
+  struct list_elem *lista_locks = list_begin(lista_donaciones);
+  while(lista_locks != list_end(lista_donaciones)){
+    struct thread *donante = list_entry(lista_locks, struct thread, elem);
+    if(donante->lock_requerido != lock){
+        lista_locks = list_next(lista_locks);
+    }
+    else if(donante->lock_requerido == lock){
+        return lista_locks;
+    }
+  }
+
+  return NULL;
+}
+
+
+bool mover_lock(struct list *lista_donaciones, struct lock *lock){
+  struct list_elem *lista_locks = list_begin(lista_donaciones);
+  while(lista_locks != list_end(lista_donaciones)){
+    struct thread *donante = list_entry(lista_locks, struct thread, elem);
+    if(donante->lock_requerido != lock){
+        lista_locks = list_next(lista_locks);
+    }
+    else if(donante->lock_requerido == lock){
+        return true;
+    }
+  }
+
+  return false;
+}
+
+
+
+
+
+
+/*------------------------------------------------------------------------*/
+
 void
 lock_acquire (struct lock *lock)
 {
@@ -197,8 +238,44 @@ lock_acquire (struct lock *lock)
   ASSERT (!intr_context ());
   ASSERT (!lock_held_by_current_thread (lock));
 
+
+  enum intr_level old_level;
+  old_level = intr_disable;
+
+  struct lock *current_lock = lock;
+  if(current_lock->holder == NULL ){
+    current_lock = lock;
+  }
+  else if(current_lock->holder != NULL){
+    int i = 0; //i es el iterador de la donacion anidada
+    while(i < DEPTH_LIMIT){
+      struct thread *thread_agarrando_lock = current_lock->holder;
+
+      if (thread_agarrando_lock->priority < thread_current ()->priority) {
+        if (mover_lock(&thread_agarrando_lock->donaciones, current_lock)) {
+          if (list_entry(buscador_de_lock(&thread_agarrando_lock->donaciones, current_lock), struct thread, elem)->priority < thread_current ()->priority) thread_agarrando_lock->priority = thread_current ()->priority;
+        } else{
+          thread_agarrando_lock->priority = thread_current ()->priority;
+          struct thread *donador = malloc (sizeof (struct thread));
+          donador->priority = thread_current ()->priority;
+          donador->lock_requerido = current_lock;
+          current_lock->donacion = donador;
+          list_insert_ordered (&thread_agarrando_lock->donaciones, &donador->elem, comparador_pri, NULL);
+        }
+      thread_agarrando_lock->HA_RECIBIDO_PRIORIDAD = true;
+      }
+      if(thread_agarrando_lock->lock_requerido == NULL) break;
+      else current_lock = thread_agarrando_lock->lock_requerido;
+
+      i++;
+    }
+
+
+  }
+  thread_current()->lock_requerido = lock;
   sema_down (&lock->semaphore);
   lock->holder = thread_current ();
+  intr_set_level(old_level);
 }
 
 /* Tries to acquires LOCK and returns true if successful or false
