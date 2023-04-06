@@ -48,7 +48,7 @@ void cond_broadcast (struct condition *, struct lock *);
 bool hubo_donacion(struct list *lista_donaciones, struct lock *lock);
 bool mover_lock(struct list *lista_donaciones, struct lock *lock);
 struct list_elem *buscador_de_lock(struct list *lista_donaciones, struct lock *lock);
-
+bool semaforo_pri(const struct list_elem *thread_A,const struct list_elem *thread_B, void *aux);
 
 /* Optimization barrier.
 

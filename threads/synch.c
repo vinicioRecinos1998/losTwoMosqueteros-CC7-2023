@@ -60,7 +60,7 @@ sema_init (struct semaphore *sema, unsigned value)
    interrupts disabled, but if it sleeps then the next scheduled
    thread will probably turn interrupts back on. */
 void
-sema_down (struct semaphore *sema)
+sema_down (struct semaphore *sema) //le da luz roja al semaforo
 {
   enum intr_level old_level;
 
@@ -103,22 +103,32 @@ sema_try_down (struct semaphore *sema)
   return success;
 }
 
+
 /* Up or "V" operation on a semaphore.  Increments SEMA's value
    and wakes up one thread of those waiting for SEMA, if any.
 
    This function may be called from an interrupt handler. */
 void
-sema_up (struct semaphore *sema)
+sema_up (struct semaphore *sema) //le da luz verde al semaforo
 {
   enum intr_level old_level;
 
   ASSERT (sema != NULL);
 
   old_level = intr_disable ();
-  if (!list_empty (&sema->waiters))
-    thread_unblock (list_entry (list_pop_front (&sema->waiters),
-                                struct thread, elem));
+  struct thread *thread_actual;
   sema->value++;
+
+  if(thread_current()->priority < thread_actual->priority) thread_yield();
+
+
+  if (!list_empty (&sema->waiters)){
+    list_sort(&sema->waiters, comparador_pri, NULL);
+    thread_actual = list_entry(list_pop_front(&sema->waiters),struct thread, elem);
+    thread_unblock(thread_actual);
+  }
+
+  //sema->value++;
   intr_set_level (old_level);
 }
 
@@ -179,6 +189,7 @@ lock_init (struct lock *lock)
 {
   ASSERT (lock != NULL);
 
+  lock->donacion = NULL;
   lock->holder = NULL;
   sema_init (&lock->semaphore, 1);
 }
@@ -240,13 +251,13 @@ lock_acquire (struct lock *lock)
 
 
   enum intr_level old_level;
-  old_level = intr_disable;
+  old_level = intr_disable();
 
   struct lock *current_lock = lock;
-  if(current_lock->holder == NULL ){
+  /*if(current_lock->holder == NULL ){
     current_lock = lock;
-  }
-  else if(current_lock->holder != NULL){
+  }*/
+  if(current_lock->holder != NULL){
     int i = 0; //i es el iterador de la donacion anidada
     while(i < DEPTH_LIMIT){
       struct thread *thread_agarrando_lock = current_lock->holder;
@@ -310,7 +321,7 @@ lock_release (struct lock *lock)  //esta funcion  libera el recurso, si se tiene
   ASSERT (lock_held_by_current_thread (lock));
 
   enum intr_level old_level;
-  old_level = intr_disable;
+  old_level = intr_disable();
   if(lock->donacion != NULL){
     list_remove(&lock->donacion->elem);
     if(!list_empty(&thread_current()->donaciones)){
@@ -408,9 +419,11 @@ cond_wait (struct condition *cond, struct lock *lock)
    interrupt handler. */
 
 //ordenar estructura de lista con locks esperando para agarrar un lock, siendo habilitados por el semaforo
-bool semaforo_pri(const struct list_elem *thread_A, const struct list_elem *thread_B, void *auxiliar UNUSED){
+bool semaforo_pri(const struct list_elem *thread_A, const struct list_elem *thread_B, void *aux UNUSED){
 return list_entry(list_front(&(list_entry(thread_A, struct semaphore_elem, elem)->semaphore.waiters)), struct thread, elem)->priority > list_entry(list_front(&(list_entry(thread_B, struct semaphore_elem, elem)->semaphore.waiters)), struct thread, elem)->priority;
 }
+
+
 
 void
 cond_signal (struct condition *cond, struct lock *lock UNUSED)
