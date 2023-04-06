@@ -31,7 +31,6 @@
 #include <string.h>
 #include "threads/interrupt.h"
 #include "threads/thread.h"
-#include "threads/thread.c"
 #include "lib/kernel/list.h"
 #define DEPTH_LIMIT 8
 /* Initializes semaphore SEMA to VALUE.  A semaphore is a

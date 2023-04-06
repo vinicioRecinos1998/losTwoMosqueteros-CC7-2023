@@ -401,7 +401,7 @@ void thread_set_priority(int new_priority)
   ASSERT(new_priority >= PRI_MIN && new_priority <= PRI_MAX);
   const struct thread *thread_pri_max = list_entry(list_max(&ready_list, comparador_pri, NULL), struct thread, elem);
   //struct thread *thread_actual = thread_current();
-  if (thread_current()->priority < thread_pri_max->priority) thread_yield();
+  if (thread_pri_max->priority > new_priority) thread_yield();
   if(!thread_current()->HA_RECIBIDO_PRIORIDAD){
     thread_current()->PRIORIDAD_INICIAL = new_priority;
     thread_current()->priority = new_priority;
@@ -415,11 +415,6 @@ void thread_set_priority(int new_priority)
       thread_current()->PRIORIDAD_INICIAL = new_priority;
     }
   }
-
-
-
-
-
 }
 
 /* Returns the current thread's priority. */
@@ -550,7 +545,7 @@ init_thread(struct thread *t, const char *name, int priority)
   t->PRIORIDAD_INICIAL = priority;
   t->PRIORIDAD_DONADA = 0;
   t->HA_RECIBIDO_PRIORIDAD = false;
-  t->lock_requerido;
+  t->lock_requerido = NULL;
   list_init(&t->donaciones);
   //implementar verificacion de pri max
   /* -------------------------------------------------------*/
