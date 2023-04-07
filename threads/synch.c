@@ -32,6 +32,7 @@
 #include "threads/interrupt.h"
 #include "threads/thread.h"
 #include "lib/kernel/list.h"
+#include "threads/malloc.h"
 #define DEPTH_LIMIT 8
 /* Initializes semaphore SEMA to VALUE.  A semaphore is a
    nonnegative integer along with two atomic operators for
@@ -118,7 +119,7 @@ sema_up (struct semaphore *sema) //le da luz verde al semaforo
   struct thread *thread_actual;
   sema->value++;
 
-  if(thread_current()->priority < thread_actual->priority) thread_yield();
+  
 
 
   if (!list_empty (&sema->waiters)){
@@ -126,6 +127,7 @@ sema_up (struct semaphore *sema) //le da luz verde al semaforo
     thread_actual = list_entry(list_pop_front(&sema->waiters),struct thread, elem);
     thread_unblock(thread_actual);
   }
+  if(thread_current()->priority < thread_actual->priority) thread_yield();
 
   //sema->value++;
   intr_set_level (old_level);
@@ -334,11 +336,12 @@ lock_release (struct lock *lock)  //esta funcion  libera el recurso, si se tiene
       lock->donacion = NULL;
     }
   }
+  lock->holder = NULL;
   thread_current()->lock_requerido = NULL;
 
 
 
-  lock->holder = NULL;
+  
   sema_up (&lock->semaphore);
   intr_set_level(old_level);
 }

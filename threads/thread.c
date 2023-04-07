@@ -4,6 +4,7 @@
 #include <random.h>
 #include <stdio.h>
 #include <string.h>
+#include "devices/timer.h"
 #include "threads/flags.h"
 #include "threads/interrupt.h"
 #include "threads/intr-stubs.h"
@@ -257,6 +258,8 @@ tid_t thread_create(const char *name, int priority,
 
   /* Add to run queue. */
   thread_unblock(t);
+  if(thread_current()->priority < t->priority) thread_yield();
+
 
   return tid;
 }
@@ -384,7 +387,7 @@ void thread_foreach(thread_action_func *func, void *aux)
 /*-----------------------------------------------------*/
 // vamos a comparar prioridades entre dos threads
 
-bool comparador_pri(const struct list_elem *thread_A, const struct list_elem *thread_B, void *variable_auxiliar UNUSED)
+bool comparador_pri(const struct list_elem *thread_A, const struct list_elem *thread_B, void *aux UNUSED)
 {
    return list_entry(thread_A, struct thread, elem)->priority > list_entry(thread_B, struct thread, elem)->priority;
 }
@@ -401,7 +404,7 @@ void thread_set_priority(int new_priority)
   ASSERT(new_priority >= PRI_MIN && new_priority <= PRI_MAX);
   const struct thread *thread_pri_max = list_entry(list_max(&ready_list, comparador_pri, NULL), struct thread, elem);
   //struct thread *thread_actual = thread_current();
-  if (thread_pri_max->priority > new_priority) thread_yield();
+  
   if(!thread_current()->HA_RECIBIDO_PRIORIDAD){
     thread_current()->PRIORIDAD_INICIAL = new_priority;
     thread_current()->priority = new_priority;
@@ -409,12 +412,13 @@ void thread_set_priority(int new_priority)
 
   else{
     if(thread_current()->priority < new_priority){
-      thread_current()-> priority = new_priority;
+      thread_current()->priority = new_priority;
     }
     else{
       thread_current()->PRIORIDAD_INICIAL = new_priority;
     }
   }
+  if (thread_pri_max->priority > new_priority) thread_yield();
 }
 
 /* Returns the current thread's priority. */
