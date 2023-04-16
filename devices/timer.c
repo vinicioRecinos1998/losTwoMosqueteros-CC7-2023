@@ -92,8 +92,11 @@ timer_sleep (int64_t ticks)
   int64_t start = timer_ticks ();
 
   ASSERT (intr_get_level () == INTR_ON);
-  while (timer_elapsed (start) < ticks) 
-    thread_yield ();
+  /*while (timer_elapsed (start) < ticks) 
+    thread_yield ();*/
+  //--------------------------------------------
+  func_dormir_threads(ticks); //insertar_en_lista_espera
+  //--------------------------------------------
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
@@ -172,6 +175,9 @@ timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
   thread_tick ();
+//-------------------------------------------------------
+  func_despertar_threads(ticks); //remover_thread_durmiente
+//-------------------------------------------------------
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
