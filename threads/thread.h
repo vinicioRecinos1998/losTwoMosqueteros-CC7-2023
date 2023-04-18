@@ -24,14 +24,14 @@ typedef int tid_t;
 #define PRI_DEFAULT 31                  /* Default priority. */
 #define PRI_MAX 63                      /* Highest priority. */
 
-/* A kernel thread or user process.
+//*****************************Implementacion NICE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+/* A kernel thread or user process.
    Each thread structure is stored in its own 4 kB page.  The
    thread structure itself sits at the very bottom of the page
    (at offset 0).  The rest of the page is reserved for the
    thread's kernel stack, which grows downward from the top of
    the page (at offset 4 kB).  Here's an illustration:
-
         4 kB +---------------------------------+
              |          kernel stack           |
              |                |                |
@@ -53,22 +53,18 @@ typedef int tid_t;
              |               name              |
              |              status             |
         0 kB +---------------------------------+
-
    The upshot of this is twofold:
-
       1. First, `struct thread' must not be allowed to grow too
          big.  If it does, then there will not be enough room for
          the kernel stack.  Our base `struct thread' is only a
          few bytes in size.  It probably should stay well under 1
          kB.
-
       2. Second, kernel stacks must not be allowed to grow too
          large.  If a stack overflows, it will corrupt the thread
          state.  Thus, kernel functions should not allocate large
          structures or arrays as non-static local variables.  Use
          dynamic allocation with malloc() or palloc_get_page()
          instead.
-
    The first symptom of either of these problems will probably be
    an assertion failure in thread_current(), which checks that
    the `magic' member of the running thread's `struct thread' is
@@ -89,14 +85,24 @@ struct thread
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
-
+    
+    //*****************************Implementacion NICE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
-    /*-------------------------------------------------------------------------------------*/
+    /*--------------------------------------------------------------------------------------------*/
     int64_t TIEMPO_DORMIDO;  //cantidad de ticks que permanecera dormido/inhabilitado un thread
-
-    /*-------------------------------------------------------------------------------------*/
+    int64_t PRIORIDAD_INICIAL;
+    int64_t PRIORIDAD_DONADA;
+    bool HA_RECIBIDO_PRIORIDAD;
+    struct lock *lock_requerido;
+    struct lock *lock_cedido;
+    struct list thread_baja_pri; //threads con recursos agarrados que necesita otro thread, y precisan donacion
+    struct list thread_alta_pri;//threads que dan prioridad para que se termine de ejecutar quien tiene su recurso
+    struct list donaciones;
+    struct list lock_disponibles;
+    /*--------------------------------------------------------------------------------------------*/
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
@@ -144,13 +150,13 @@ int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
 
-
-//-------------------------------------------------------
-void func_dormir_threads(int64_t ticks); //insertar_en_lista_espera
-void func_despertar_threads(int64_t ticks); //remover_thread_durmiente
+/*---------------------------------------------------------------------------------------*/
+void func_dormir_threads(int64_t ticks);
+void func_despertar_threads(int64_t ticks);
 bool comparador_pri(const struct list_elem *thread_A, const struct list_elem *thread_B, void *aux UNUSED);
+bool comparador_igual_pri(const struct list_elem *thread_A, const struct list_elem *thread_B, void *variable_auxiliar UNUSED);
 
+/*---------------------------------------------------------------------------------------*/
 
-//-------------------------------------------------------
 
 #endif /* threads/thread.h */
