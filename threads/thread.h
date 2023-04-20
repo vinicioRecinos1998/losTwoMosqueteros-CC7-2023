@@ -22,7 +22,13 @@ typedef int tid_t;
 /* Thread priorities. */
 #define PRI_MIN 0                       /* Lowest priority. */
 #define PRI_DEFAULT 31                  /* Default priority. */
-#define PRI_MAX 63                      /* Highest priority. */
+#define PRI_MAX 63
+                      /* Highest priority. */
+//PUNTOS EXTRAS
+#define NICENESS_MIN -20 //esto salio de la guia de standford
+#define NICENESS_MAX 20 //esto salio de la guia de standford
+#define NICENESS_DEFAULT 0 //esto salio de la guia de standford
+
 
 //*****************************Implementacion NICE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -102,6 +108,10 @@ struct thread
     struct list thread_alta_pri;//threads que dan prioridad para que se termine de ejecutar quien tiene su recurso
     struct list donaciones;
     struct list lock_disponibles;
+
+    //PUNTOS EXTRAS
+    int niceness;
+    int cpu;
     /*--------------------------------------------------------------------------------------------*/
 
 #ifdef USERPROG
@@ -159,4 +169,14 @@ bool comparador_igual_pri(const struct list_elem *thread_A, const struct list_el
 /*---------------------------------------------------------------------------------------*/
 
 
+
+//***************************************
+//PUNTOS EXTRAS
+void prioridad_mlfqs(struct thread *, void *aux);
+void average_mlfqs(void);
+void cpu_mlfqs(struct thread *, void *aux);
+
+
+
+//***************************************
 #endif /* threads/thread.h */

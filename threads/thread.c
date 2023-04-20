@@ -25,7 +25,8 @@
 
 static struct list lista_de_threads_en_espera;
 
-//static int tiempo_de_carga;
+//PUNTOS EXTRAS
+static int load_avg;
 
 /*------------------------------------------------------------*/
 
@@ -92,50 +93,50 @@ static tid_t allocate_tid(void);
    finishes. */
 
 
-// funcion que realiza el calculo de prioridades al valor entero mas cercano evaluando de que si la prioridad es menor o mayor, se setea a los valores default
-// void calculo_donaciones_de_prioridades(struct thread *thread_actual, void *variables_auxiliar UNUSED)
-// {
-//   ASSERT(is_thread(thread_actual));
-//   if (thread_actual != idle_thread)
-//   {
-//     thread_actual->priority = PRI_MAX - CONVERT_TO_INT_NEAREST(DIV_FP_INT(thread_actual->recent_cpu, 4)) - (thread_actual->nice * 2);
-//     if (thread_actual->priority < PRI_MIN)
-//     {
-//       thread_actual->priority = PRI_MIN;
-//     }
-//     if (thread_actual->priority > PRI_MAX)
-//     {
-//       thread_actual->priority = PRI_MAX;
-//     }
-//   }
-// }
+funcion que realiza el calculo de prioridades al valor entero mas cercano evaluando de que si la prioridad es menor o mayor, se setea a los valores default
+void prioridad_mlfqs(struct thread *thread_actual, void *variables_auxiliar UNUSED)
+{
+  ASSERT(is_thread(thread_actual));
+  if (thread_actual != idle_thread)
+  {
+    thread_actual->priority = PRI_MAX - CONVERT_TO_INT_NEAREST(DIV_FP_INT(thread_actual->recent_cpu, 4)) - (thread_actual->nice * 2);
+    if (thread_actual->priority < PRI_MIN)
+    {
+      thread_actual->priority = PRI_MIN;
+    }
+    if (thread_actual->priority > PRI_MAX)
+    {
+      thread_actual->priority = PRI_MAX;
+    }
+  }
+}
 
-// void calculo_tiempo_espera_cpu(struct thread *thread_actual, void *variables_auxiliar UNUSED)
-// {
-//   ASSERT(is_thread(thread_actual));
-//   if (thread_actual != idle_thread)
-//   {
-//     thread_actual->recent_cpu = SUMFI(MULT(DIV(MULTFI(load_avg, 2), SUMFI(MULTFI(load_avg, 2), 1)), thread_actual->recent_cpu), thread->nice);
-//   }
-// }
+void cpu_mlfqs(struct thread *thread_actual, void *variables_auxiliar UNUSED)
+{
+  ASSERT(is_thread(thread_actual));
+  if (thread_actual != idle_thread)
+  {
+    thread_actual->recent_cpu = SUMFI(MULT(DIV(MULTFI(load_avg, 2), SUMFI(MULTFI(load_avg, 2), 1)), thread_actual->recent_cpu), thread->nice);
+  }
+}
 
-// void calculo_tiempo_carga_thread()
-// {
-//   ASSERT(is_thread(thread_actual));
-//   int num_threads_a_ejecutarse = list_size(&ready_list);
+void average_mlfqs()
+{
+  ASSERT(is_thread(thread_actual));
+  int num_threads_a_ejecutarse = list_size(&ready_list);
 
-//   if (thread_actual == idle_thread)
-//   {
-//     num_threads_a_ejecutarse = list_size(&ready_list);
-//   }
+  if (thread_actual == idle_thread)
+  {
+    num_threads_a_ejecutarse = list_size(&ready_list);
+  }
 
-//   if (thread_actual != idle_thread)
-//   {
-//     num_threads_a_ejecutarse = list_size(&ready_list) + 1;
-//   }
+  if (thread_actual != idle_thread)
+  {
+    num_threads_a_ejecutarse = list_size(&ready_list) + 1;
+  }
 
-//   MULT(DIVFI(CONVERT_N_TO_FIXED_POINT(59), 60), tiempo_de_carga) + MULTFI(DIVFI(CONVERT_N_TO_FIXED_POINT(1), 60), num_threads_a_ejecutarse);
-// }
+  MULT(DIVFI(CONVERT_N_TO_FIXED_POINT(59), 60), tiempo_de_carga) + MULTFI(DIVFI(CONVERT_N_TO_FIXED_POINT(1), 60), num_threads_a_ejecutarse);
+}
 
 /*-----------------------------------------------------*/
 
@@ -149,6 +150,9 @@ void thread_init(void)
 
   /*-------------------------------------*/
   list_init(&lista_de_threads_en_espera);
+
+  //PUNTOS EXTRAS
+  load_avg = 0;
 
   /*-------------------------------------*/
 
@@ -424,27 +428,45 @@ int thread_get_priority(void)
 void thread_set_nice(int nice UNUSED)
 {
   /* Not yet implemented. */
+
+  //PUNTOS EXTRAS
+  
+  ASSERT(nice >= NICENESS_MIN && nice <= NICENESS_MAX);
+  thread_current ()->nice = nice;
+  prioridad_mlfqs(thread_current(), NULL);
+  if (thread_current () != idle_thread){
+     if (thread_current()->status == THREAD_RUNNING){
+      if (list_entry(list_max(&ready_list, comparador_pri, NULL), struct thread, elem)->priority > thread_current ()->priority) {
+        thread_yield();
+      }
+    }
+  }
 }
 
 /* Returns the current thread's nice value. */
 int thread_get_nice(void)
 {
   /* Not yet implemented. */
-  return 0;
+
+  //PUNTOS EXTRAS
+  return thread_current ()->nice;
 }
 
 /* Returns 100 times the system load average. */
 int thread_get_load_avg(void)
 {
   /* Not yet implemented. */
-  return 0;
+
+  //PUNTOS EXTRAS
+  return return CONVERT_X_TO_INT_NEAREST(MULTFI(load_avg,100));
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
 int thread_get_recent_cpu(void)
 {
   /* Not yet implemented. */
-  return 0;
+  //PUNTOS EXTRAS
+  return CONVERT_X_TO_INT_NEAREST(MULTFI(thread_current()->recent_cpu,100));
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
