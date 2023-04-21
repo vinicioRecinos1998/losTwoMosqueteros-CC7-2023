@@ -26,7 +26,7 @@
 static struct list lista_de_threads_en_espera;
 
 //PUNTOS EXTRAS
-static int load_avg;
+//static int load_avg;
 
 /*------------------------------------------------------------*/
 
@@ -92,7 +92,7 @@ static tid_t allocate_tid(void);
    It is not safe to call thread_current() until this function
    finishes. */
 
-
+/*
 funcion que realiza el calculo de prioridades al valor entero mas cercano evaluando de que si la prioridad es menor o mayor, se setea a los valores default
 void prioridad_mlfqs(struct thread *thread_actual, void *variables_auxiliar UNUSED)
 {
@@ -137,7 +137,7 @@ void average_mlfqs()
 
   MULT(DIVFI(CONVERT_N_TO_FIXED_POINT(59), 60), tiempo_de_carga) + MULTFI(DIVFI(CONVERT_N_TO_FIXED_POINT(1), 60), num_threads_a_ejecutarse);
 }
-
+*/
 /*-----------------------------------------------------*/
 
 void thread_init(void)
@@ -152,7 +152,7 @@ void thread_init(void)
   list_init(&lista_de_threads_en_espera);
 
   //PUNTOS EXTRAS
-  load_avg = 0;
+  //load_avg = 0;
 
   /*-------------------------------------*/
 
@@ -430,7 +430,7 @@ void thread_set_nice(int nice UNUSED)
   /* Not yet implemented. */
 
   //PUNTOS EXTRAS
-  
+  /*
   ASSERT(nice >= NICENESS_MIN && nice <= NICENESS_MAX);
   thread_current ()->nice = nice;
   prioridad_mlfqs(thread_current(), NULL);
@@ -441,6 +441,7 @@ void thread_set_nice(int nice UNUSED)
       }
     }
   }
+  */
 }
 
 /* Returns the current thread's nice value. */
@@ -449,7 +450,8 @@ int thread_get_nice(void)
   /* Not yet implemented. */
 
   //PUNTOS EXTRAS
-  return thread_current ()->nice;
+  //return thread_current ()->nice;
+  return 0;
 }
 
 /* Returns 100 times the system load average. */
@@ -458,7 +460,8 @@ int thread_get_load_avg(void)
   /* Not yet implemented. */
 
   //PUNTOS EXTRAS
-  return return CONVERT_X_TO_INT_NEAREST(MULTFI(load_avg,100));
+  //return return CONVERT_X_TO_INT_NEAREST(MULTFI(load_avg,100));
+  return 0;
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
@@ -466,7 +469,8 @@ int thread_get_recent_cpu(void)
 {
   /* Not yet implemented. */
   //PUNTOS EXTRAS
-  return CONVERT_X_TO_INT_NEAREST(MULTFI(thread_current()->recent_cpu,100));
+  //return CONVERT_X_TO_INT_NEAREST(MULTFI(thread_current()->recent_cpu,100));
+  return 0;
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
